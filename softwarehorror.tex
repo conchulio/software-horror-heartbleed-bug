@@ -1,0 +1,242 @@
+% XeLaTeX can use any Mac OS X font. See the setromanfont command below.
+% Input to XeLaTeX is full Unicode, so Unicode characters can be typed directly into the source.
+
+% The next lines tell TeXShop to typeset with xelatex, and to open and save the source with Unicode encoding.
+
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+\documentclass[12pt]{article}
+%\usepackage{extsizes}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{a4paper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+
+\usepackage{polyglossia}
+\setdefaultlanguage{german}
+
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+%\usepackage{wasysym}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+
+\usepackage{todonotes}
+
+\usepackage{float}
+
+\usepackage{tikz}
+\usetikzlibrary{external}
+\tikzset{external/system call={xelatex  \tikzexternalcheckshellescape
+    -halt-on-error -interaction=batchmode -jobname "\image" "\texsource"}}
+\tikzexternalize[prefix=figures/]
+
+\usepackage{ifplatform}
+\usepackage{amsmath}
+
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{\medskipamount}
+
+% Will Robertson's fontspec.sty can be used to simplify font choices.
+% To experiment, open /Applications/Font Book to examine the fonts provided on Mac OS X,
+% and change "Hoefler Text" to any of these choices.
+
+\usepackage{fontspec,xltxtra,xunicode}
+
+\ifmacosx
+	\newcommand{\romanFont}{Hoefler Text}
+\else
+	\newcommand{\romanFont}{Linux Libertine O}
+\fi
+
+\defaultfontfeatures{Mapping=tex-text}
+\setmainfont[Mapping=tex-text]{\romanFont}
+%\setsansfont[Scale=MatchLowercase,Mapping=tex-text]{Gill Sans}
+%\setmonofont[Scale=MatchLowercase]{Andale Mono}
+
+%\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+\newcommand{\logoheight}{2.5cm}
+
+\title{Der Heartbleed-Bug}
+\author{Maximilian Bachl}
+%\date{}                                           % Activate to display a given date or no date
+
+% PDF properties
+\hypersetup{
+	pdftitle={\title{}},
+	pdfauthor={\author{}}
+}
+
+\usepackage[nottoc,numbib]{tocbibind}
+\usepackage[round]{natbib}
+\usepackage{changepage}
+
+\makeatletter
+\renewcommand\listoffigures{%
+    \section*{\listfigurename}% Used to be \section*{\listfigurename}
+      \@mkboth{\MakeUppercase\listfigurename}%
+              {\MakeUppercase\listfigurename}%
+    \@starttoc{lof}%
+    }
+\makeatother
+
+\makeatletter
+\renewcommand{\todo}[2][]{\tikzexternaldisable\@todo[#1]{#2}\tikzexternalenable}
+\makeatother
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+%\newcommand*{\fullref}[1]{\hyperref[{#1}]{\autoref*{#1} \nameref*{#1}}}
+\newcommand*{\fullref}[1]{\hyperref[{#1}]{\autoref*{#1} (\nameref*{#1})}}
+
+\newcommand{\makemu}{{\fontspec{Linux Libertine O}μ}}
+\newcommand{\twothirds}{{\fontspec{Linux Libertine O}⅔}}
+
+\usepackage{multirow}
+
+\usepackage{capt-of}
+
+\usepackage[hang,flushmargin]{footmisc} 
+
+\newcommand\glqq{"`}
+\newcommand\grqq{"'}
+
+\begin{document}
+
+\date{\today}
+
+\maketitle
+
+\pagenumbering{arabic}
+
+\section{Einleitung}
+
+Der „Heartbleed“ genannte Bug, der am 1. April 2014 in der Verschlüsselungssoftware OpenSSL gefunden wurde, ist von renommierten Sicherheitsexperten, wie etwa Bruce Schneier, als \textit{katastrophal} eingestuft worden \citep{bruce_schneier_heartbleed_2014}. Ein anderer Spezialist schrieb im Forbes-Magazin, dass es sich hierbei um den schwerwiegendsten Fehler seit dem Beginn des kommerziellen Internets handelt \citep{joseph_steinberg_massive_2014}. 
+
+Zu den Seiten, die betroffen waren, zählen viele sehr bekannt Web-Portale wie etwa Google, Amazon, Facebook, Reddit u.a. Auch das Betriebssystem „Android“ hatte eine fehlerhafte OpenSSL-Implementierung. Es wird geschätzt, dass OpenSSL auf circa zwei Drittel aller verschlüsselten Webseiten benutzt wird \citep{netcraft_april_2014}. 
+
+Bei der Sicherheitslücke in der Implementierung der „Heartbeat“-Erweiterung \citep{limer_how_2014} handelt es sich um einen sogenannten „Buffer-Overread“. Das bedeutet, dass bei einer manipulierten Anfrage mehr Informationen ausgelesen und übertragen werden können, als eigentlich laut Spezifikation gewollt ist. Genauer gesagt ist es möglich bis zu 64kB an zufälligen Informationen aus dem Speicher des angegriffenen Systems zu erhalten. 
+
+Die besondere Gefahr dieses Softwarefehlers resultiert daraus, dass er mehrere Jahre existierte, bevor er öffentlich bekannt wurde. Auch als der Bug erkannt und behoben wurde, haben viele Webseiten ihre OpenSSL-Software nicht aktualisiert, wodurch es einige Tage lang möglich war private Daten von betroffenen Websites zu stehlen.
+Besondere Brisanz erhält der Bug weiterhin durch die Tatsache, dass Quellen behaupten \citep{riley_nsa_2014}, die NSA hätte von dem Fehler schon seit einem längeren Zeitraum gewusst und diesen auch gezielt ausgenutzt. Wenn dies stimmt, würde das die Spionagevorwürfe, die im letzten Jahr wegen des „Prism“-Programms aufkamen, in neues Licht rücken.
+
+Im Folgenden möchte ich die konkreten Auswirkungen von Heartbleed auf das Internet und seine Nutzer thematisieren. Außerdem möchte ich die Fehler analysieren, die das Problem überhaupt erst ermöglicht haben. 
+
+\section{Die Geschichte des Fehlers}
+
+Mitarbeiter von Google und Codenomicon entdeckten den Fehler Ende März/Anfang April 2014 unabhängig voneinander. Um die Nutzer des Internets vor Kriminellen zu schützen, wurde der Fehler erst öffentlich gemacht, nachdem das OpenSSL-Team ihn am 7. April behoben hat \citep{grubb_heartbleed_2014} und eine offizielle Nachricht ausgesendet hat \citep{openssl_openssl_2014}. Einige große Anbieter wie Facebook oder das Content-Distribution-Network „CloudFlare“, wurden schon vorher durch verschlüsselte Nachrichten über den Fehler informiert, und so konnten sie das Problem schon vor dem öffentlichen Bekanntwerden beheben. Es gab aber auch zahlreiche Services wie Twitter und Amazon, die von der Sicherheitslücke erst erfuhren, als sie veröffentlicht wurde. Somit konnten zumindest bei diesen Seiten private Informationen gestohlen werden, bis auch sie OpenSSL upgedatet hatten.
+
+Außerdem fand man im Zuge der darauffolgenden Recherchen heraus, wann der Fehler „committet“, also in die zentrale Quellcodeverwaltung des OpenSSL-Projekts eingespeist wurde. Dies geschah zu Silvester im Jahr 2011 \citep{brodkin_heartbleed_2014}. Der dafür verantwortliche Programmierer ist ein Robin Seggelmann aus Duisburg, der beteuert, den Fehler versehentlich gemacht zu haben \citep{schulz_programmierer_2014}.
+
+Rechnet man von der Entstehung von Heartbleed bis zu seiner Entdeckung, so sieht man, dass die schadhafte Version von OpenSSL 27 Monate im Umlauf war und der Fehler so lange ausgenutzt werden konnte. 
+
+\section{Auswirkungen}
+
+Nun stellt sich die Frage, welche Daten Angreifer durch Heartbleed erbeuten konnten. Prinzipiell kann ein Angreifer durch den Fehler den gesamten Speicherbereich von OpenSSL auslesen. Dazu muss er nur genug Angriffe durchführen \citep{codenomicon_heartbleed_2014}.
+
+Die betroffenen Daten, die sich im Speicherbereich von OpenSSL befinden, werden von \citet{codenomicon_heartbleed_2014} in vier Kategorien eingeteilt: 
+\begin{enumerate}
+\item Die \textbf{privaten Schlüssel} des SSL-Zertifikats des Servers. Bei dem Zertifikat handelt es sich um ein sogenanntes X.509-Zertifikat, das benutzt wird, damit der Client die Identität des Servers bestätigen kann. Hat man den privaten Schlüssel erbeutet, kann man den gesamten verschlüsselten Datenverkehr des Servers entschlüsseln und mitlesen. Dies gilt ebenso für alle verschlüsselten Daten, die in der Vergangenheit gesendet wurden. 
+
+Des Weiteren kann sich ein Angreifer, wenn er den Schlüssel hat, als die Webseite ausgeben, von der er den Private-Key erbeutet hat. Dies ermöglicht etwa Phishing-Angriffe. 
+
+Um diese Angriffsmöglichkeit zu unterbinden, muss der betroffene Web-Service seine Zertifikate als ungültig markieren und neue erstellen. Erst wenn dies erfolgt ist, können keine neuen verschlüsselten Daten mehr von Angreifern mitgelesen werden.
+
+Die besondere Problematik hierbei ist, dass es einige Web-Browser gibt, die die Sperrlisten für Zertifikate nicht überprüfen oder nicht zuverlässig überprüfen \citep{seltzer_chrome_2014}. Somit kann dieses Problem erst entschärft werden, wenn die betroffenen Zertifikate abgelaufen sind (Zertifikate verlieren nach einer gewissen Zeitdauer ihre Gültigkeit). Dies ist bei den meisten Zertifikaten aber erst nach zwei bis fünf Jahren der Fall \citep{huston_best_2009}.
+\item Die \textbf{Session-Keys, Usernamen und Passwörter} der Benutzer der betroffenen Web-Services.
+\item \textbf{Geschützter User-Inhalt}, wie etwa vertrauliche Nachrichten (etwa auf Facebook). Ebenso zählen hierzu Kreditkartendaten und andere Zahlungsinformationen, die in den falschen Händen großen finanziellen Schaden verursachen können. 
+\item \textbf{Technische Detailinformationen}, wie etwa die benutzten Speicheradressen und genaue Informationen zur benutzten OpenSSL-Implementierung. Diese Daten sind die am wenigsten hilfreichen, da sie nach einem Upgrade der Sicherheitssoftware nicht mehr zu gebrauchen sind. Auch ein simpler Neustart der Sicherheitssoftware lässt die Speicheradressen unbrauchbar werden, da bei jeder Neuinitialisierung des Programms der Speicher neu zugewiesen wird. 
+\end{enumerate}
+
+\section{Technische Grundlagen}
+
+Wie schon erwähnt handelt es sich bei dem Fehler um einen „Buffer-Overread“ in der „Heart-Beat“-Erweiterung von OpenSSL \citep{cassidy_diagnosis_2014}. Dieses neue Feature ermöglicht es, verschlüsselte Verbindungen auch nach der Übertragung der Daten aufrecht zu erhalten. Somit muss die Verbindung später nicht nochmals aufgebaut werden, wenn wieder Daten gesendet werden, was Zeit spart. 
+
+Die Funktionsweise des Heart-Beats wird im Folgenden erklärt. Die beiden Beteiligten sind hier Person A und Person B.
+\begin{enumerate}
+\item Person A will sicherstellen, ob die Verbindung zu B noch existiert und fragt daher B, ob er noch da ist.
+\item Dazu sendet A der Person B ein Paket, etwa mit dem Inhalt „Blubb“. Er sagt dazu, dass „Blubb“ 5 Zeichen lang ist.
+\item B erhält die Nachricht und antwortet mit der Nachricht, die A ihm geschickt hat. Er sendet also wieder „Blubb“ zurück. 
+\item Nun weiß A, dass die Verbindung zu B noch besteht.
+\end{enumerate}
+
+Der Heartbleed-Bug resultiert daraus, dass B nicht überprüft, ob die Nachricht auch tatsächlich so lange ist, wie A ihm sagt \citep{limer_how_2014}. Angenommen A ist ein Angreifer, so würde A die Nachricht „Blubb“ an B senden, aber sagen, dass „Blubb“ 500 Zeichen lang ist. B würde das nicht überprüfen und die Antwort würde folgendermaßen aussehen: „Blubb\textit{<495 beliebige andere Zeichen aus dem Speicher von OpenSSL>}“.
+
+Durch den Angriff kann A also Daten aus dem Speicherbereich von OpenSSL bekommen. Die Höchstgrenze sind $2^{2\cdot8} = 2^{16} = 65536$ Bytes, da das Feld für die Länge in der Heart-Beat-Nachricht zwei Bytes lang ist. 
+
+\section{Einsatz von Heartbleed}
+
+Da ein Angreifer, der Heartbleed ausnutzt kaum Spuren hinterlässt, ist es schwierig zu sagen, wo und wann es eingesetzt wurde \citep{malloy_blogs_2014}.
+
+Es gibt aber einige Fälle von denen man weiß, allerdings keine besonders schwerwiegenden Fälle. So wurden etwa kanadische Sozialversicherungsdaten gestohlen sowie auch Daten des britischen Erziehungsratgebers „Mumsnet“. 
+
+Allerdings wurde in diesen beiden Fällen der Fehler erst nach der Veröffentlichung ausgenutzt, bevor er von den betroffenen Seiten behoben wurde. 
+
+\subsection{Nutzung durch die National Security Agency (NSA)}
+
+Das Nachrichtenportal „Bloomberg“ schrieb, es habe zwei Insider aus der NSA interviewt, die behaupten, die NSA habe vom Heartbleed-Bug schon länger gewusst und diesen auch aktiv genutzt. Laut dieser Kontaktpersonen habe der Inlandsgeheimdienst den Fehler auch bewusst nicht veröffentlicht, um ihn länger für seine eigenen Zwecke nutzen zu können. Angeblich wurden so Passwörter und alle anderen Arten privater Nutzerdaten erbeutet. \citep{riley_nsa_2014}
+
+Die NSA wies die Vorwürfe zurück \citep{magid_nsa_2014} und sagte, auch sie hätten von dem Fehler nur aus den Medien erfahren. 
+
+Laut \citet{riley_nsa_2014} ist sonst niemand bekannt, der den Fehler vor der Veröffentlichung genutzt haben könnte. 
+
+\section{Mitwirkende Faktoren und Ursachen}
+
+Hier soll auf Faktoren eingegangen werden, die zum Heartbleed-Bug beigetragen haben und ihn ermöglicht haben. 
+
+\subsection{Linus' Law}
+
+Lange Zeit dachte man, dass Open-Source-Software (OSS) prinzipiell sicherer als Closed-Source-Software ist, weil bei OSS der Quellcode öffentlich ist und ihn somit auch mehr Leute auf seine korrekte Funktionsweise überprüfen können. 
+
+Diese Mentalität wird in Eric Raymonds „Linus' Law“ zum Ausdruck gebracht: \textit{„Given enough eyeballs, all bugs are shallow“}. Durch die große Anzahl an Entwicklern, die sich den Code ansehen, werden also Fehler tendenziell unwahrscheinlich. 
+
+Bei OpenSSl hat dieses Gesetz allerdings nicht gegolten. Die Gründe hierfür werden im nächsten Absatz erläutert. 
+
+\subsubsection{Das OpenSSL-Team}
+
+Zum Fehler beigetragen hat der Aufbau des OpenSSL-Teams an sich. OpenSSL hat nur einen einzigen Vollzeitentwickler, nämlich den britischen Mathematiker Stephen Henson. Dies ist nicht ausreichend angesichts der Tatsache, dass das Projekt mittlerweile aus über 400000 Zeilen Programmcode besteht. Um so eine große Menge an Code zu warten reicht eine Person nicht aus. \citep{stokel-walker_internet_2014, vaughan-nichols_cash_2014}
+
+Als Heartbleed öffentlich wurde haben viele große Institutionen erkannt, dass derart essentielle Projekte wie OpenSSL mehr finanzielle Ressourcen brauchen und darum wurde die „Core Infrastructure Initiative“ gegründet. Das Ziel ist, durch mehr Entwickler solche Fehler in Zukunft vermeiden zu können. 
+
+Man kann also sagen, dass Linus' Law zwar prinzipiell gilt: Wenn mehr Leute den Code betrachten, werden Fehler eher gefunden. Bei vielen Projekten, wie bei OpenSSL, gibt es aber schlicht nicht genug Leute, die den Code auf Fehler überprüfen.
+
+\subsection{Verwendung der Programmiersprache \textit{C}}
+
+Wie schon erwähnt ist die Ursache für Heartbleed ein „Buffer-Overread“. Diese Art von Fehlern kann nur in Programmiersprache entstehen, die die Größenbeschränkungen von Zeichenketten nicht überprüfen. C ist eine der wenigen populären Sprachen, die den Zugriff auf sogenannte „Strings“, also Zeichenketten, nicht überprüfen \citep{wheeler_how_2014}. In anderen Programmiersprachen wie etwa Java oder Python, könnte Heartbeat nicht funktionieren, da ein Fehler ausgegeben werden würde, wenn z.B. beim String „Blubb“ auf das vierhundertste Element zugegriffen werden soll. 
+
+Der Grund, warum C trotz dieser Einschränkungen benutzt wird, ist, dass C sehr alt ist und darum viel Software vorhanden ist, die in dieser Programmiersprache geschrieben sind. Außerdem ist C relativ einfach und hat nur geringe Komplexität \citep{cheng_ten_2011}.
+
+\subsection{Fokus auf Performance zulasten der Sicherheit}
+
+Ein weiterer beitragender Faktor ist, dass OpenSSL eine eigene Implementierung der „malloc“-Funktion benutzt. Mit „malloc“ fordern Programme Speicherplatz an und reservieren neuen Speicher. Man hat diese Funktion in OpenSSL neu implementiert, da in den 1990er Jahren, also also das Projekt ins Leben gerufen wurde, gängige Implementierungen von „malloc“ keine gute Performance lieferten. 
+
+Die Neuimplementierung verwaltet den Speicher allerdings durch eine Liste, die alle freien Speicherbereiche auflistet. Diese Liste funktioniert nach dem Last-In-First-Out-Prinzip. Wenn OpenSSL neuen Speicher verlangt, so bekommt es immer den Speicherabschnitt, der zuletzt freigegeben wurde. \citep{unangst_heartbleed_2014}
+
+Das Problem hierbei ist, dass dadurch immer ein neuer Speicherbereich zurückgegeben wird, der noch sehr aktuelle Daten enthält. Darum erhalten Angreifer bei Heartbleed immer aktuelle Daten. \citep{higgins_did_2014}
+
+Ein anderes Problem ist, dass man bei OpenSSL neuen Speicher nicht mit Nullen überschreibt \citep{lopez_how_2014}. Das heißt, dass neu reservierte Speicherbereiche immer noch alte Informationen enthalten. Auch dies hat man wegen der Performance gemacht, da das Initialisieren mit Nullen eine gewisse Zeit dauert.
+
+\section{Schlussfolgerung}
+
+Eine große Rolle bei Heartbleed spielte menschliches Versagen, da der fehlerhafte Code von vor der Veröffentlichung jemand anderem (dem OpenSSL-Hauptentwickler) reviewt wurde und der Bug auch von ihm nicht entdeckt wurde \citep{timson_who_2014}. Es gab also zwei Menschen, den Programmierer, Robin Seggelmann, und den Überprüfer, Stephen Henson, die den Fehler nicht erkannt haben. 
+
+Es ist aber meiner Meinung nach nicht ausschließlich die Schuld dieser beiden Entwickler, da es für so wenige Personen beinahe unmöglich ist, den Überblick über ein Projekt mit mehrerer 100000 Zeilen Code zu behalten. Das „Linus' Law“ ist zwar prinzipiell gültig, aber Open-Source-Software ist nur dann sicherer als Closed-Source, wenn der Code auch tatsächlich gelesen und überprüft wird. Dies war bei OpenSSL nicht in ausreichendem Maß der Fall.
+
+Allerdings wurde dieses Problem nach Heartbleed von vielen Konzernen erkannt und mit der „Core Infrastructure Initiative“ wird in Zukunft durch mehr finanzielle Mittel entgegengesteuert. 
+
+Ein anderer wichtiger Aspekt ist, dass selbst nachdem der Fehler bereits implementiert war, es normalerweise einige Sicherheitsmechanismen geben müsste, die die Auswirkungen von Heartbleed minimiert hätten. 
+
+Diese Mechanismen wurden jedoch außer Kraft gesetzt, etwa durch die Verwendung der verhältnismäßig unsicheren Programmiersprache C, sowie das Neuimplementieren der Speicherverwaltung als auch der Verzicht auf das Initialisieren des Speichers mit Nullen. Dies sind alles Folgen eines zu großen Fokus auf Geschwindigkeit im OpenSSL-Projekt. Hierbei wurde aber durch den Schwerpunkt auf Performance gleichzeitig die Sicherheit nicht genügend beachtet. 
+
+\bibliographystyle{natdin}
+\bibliography{softwarehorror}
+
+\end{document}
+
+
